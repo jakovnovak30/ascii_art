@@ -36,7 +36,7 @@ Example usage:
 .      ...     .                       .
 ```
 
-# TODO:
+### TODO:
 1. adding color mode
 2. handling alpha channels on pngs
 3. future gif support (ANSI escape codes and animation in terminal)?
