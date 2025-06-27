@@ -2,14 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
+#include <threads.h>
 
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 #endif
-
-// gif loading function
-#include "gif_load.h"
 
 #define FAIL \
     {\
@@ -71,6 +70,11 @@ void convert_frame(unsigned char *frame, char out[glob.out_h][glob.out_w+1]) {
   }
 }
 
+void clear_screen(void) {
+  printf("\x1b[%dA", glob.out_h);
+  printf("\x1b[%dD", glob.out_w);
+}
+
 void display(char out[glob.out_h][glob.out_w+1]) {
   for(int hh=0;hh < glob.out_h;hh++) puts(out[hh]);
 }
@@ -103,9 +107,20 @@ int main(int argc, char **argv) {
 
   if(strstr(argv[1], ".gif")) {
     LOG("THIS IS A GIF");
-    int frames;
-    stbi_xload(argv[1], &glob.w, &glob.h, &frames);
-    LOG("Frames: %d", frames);
+    stbi_info(argv[1], &glob.w, &glob.h, &glob.chs);
+
+    //TODO: load gif frames and delays
+
+    /*
+    char out[glob.out_h][glob.out_w+1];
+    for(int i=0;i < 10;i++) {
+      clear_screen();
+      convert_frame(img + glob.w*glob.h*glob.chs*i, out);
+      // output result
+      display(out);
+      thrd_sleep(&(struct timespec){.tv_sec=1}, NULL); // sleep 1 sec
+    }
+    */
   }
   else {
     // convert frame
