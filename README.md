@@ -2,6 +2,7 @@
 Simple program that generates ascii art from input file.
 
 Example usage:
+```
 > bin/ascii_converter res/mona.jpg 40
 
 =====-===----=-========-------------=-=-
@@ -33,6 +34,7 @@ Example usage:
 ...........-:..........           ......
 ...  ..  .........                 .  ..
 .      ...     .                       .
+```
 
 TODO:
     1. adding color mode
