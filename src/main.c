@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,12 +20,34 @@
 #define LOG(...)
 #endif
 
+#if 0
 static char map[] = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
+#else
+static char map[] = " .:-=+*#%@";
+#endif
 
-char sample_value(unsigned char *img, int ratio_w, int ratio_h, int ww, int hh, int chs) {
+char sample_value(unsigned char *img, int ratio_w, int ratio_h, int ww, int hh, int chs, int width) {
   int avg = 0;
 
-  return '0';
+  for(int i=0;i < ratio_h;i++) {
+    for(int j=0;j < ratio_w;j++) {
+      int curr_w = ww * ratio_w + j;
+      int curr_h = hh * ratio_h + i;
+
+      unsigned char *curr_pixel = img + curr_h*width*chs + curr_w*chs;
+      int curr = 0;
+      for(int chan=0;chan < chs;chan++) curr += curr_pixel[chan];
+      curr /= chs;
+
+      avg += curr;
+    }
+  }
+  avg /= ratio_w * ratio_h;
+
+  float darkness = (float) avg / 255.0f;
+  int index = floor(darkness * sizeof(map));
+
+  return map[index];
 }
 
 int main(int argc, char **argv) {
@@ -52,13 +75,13 @@ int main(int argc, char **argv) {
   memset(out, '\0', sizeof(out));
   for(int hh=0;hh < out_h;hh++) {
     for(int ww=0;ww < out_w;ww++) {
-      out[hh][ww] = sample_value(img, ratio_w, ratio_h, ww, hh, chs);
+      out[hh][ww] = sample_value(img, ratio_w, ratio_h, ww, hh, chs, w);
     }
   }
-
 
   for(int hh=0;hh < out_h;hh++)
     puts(out[hh]);
 
+  stbi_image_free(img);
   return 0;
 }
