@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 #include <threads.h>
 
 #ifndef STB_IMAGE_IMPLEMENTATION
@@ -105,7 +104,7 @@ int main(int argc, char **argv) {
   glob.ratio_w = glob.w / glob.out_w;
   glob.ratio_h = glob.h / glob.out_h;
 
-  if(strstr(argv[1], ".gif")) {
+  if(strstr(argv[1], ".gif") && 0) {
     LOG("THIS IS A GIF");
     stbi_info(argv[1], &glob.w, &glob.h, &glob.chs);
 
