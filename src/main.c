@@ -8,6 +8,9 @@
 #include "stb/stb_image.h"
 #endif
 
+// gif loading function
+#include "gif_load.h"
+
 #define FAIL \
     {\
     perror("Usage: ascii_converter <image_path> <output_height> <output_width>");\
@@ -16,7 +19,7 @@
     }
 
 #ifdef DEBUG
-#define LOG(_fmt, ...) printf("[DEBUG] [" __FILE__ ":%d] " _fmt "\n", __LINE__, __VA_ARGS__);
+#define LOG(_fmt, ...) printf("[DEBUG] [" __FILE__ ":%d] " _fmt "\n", __LINE__, ##__VA_ARGS__);
 #else
 #define LOG(...)
 #endif
@@ -29,23 +32,29 @@ static char map[] = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i
 static char map[] = " .:-=+*#%@";
 #endif
 
-char sample_value(unsigned char *img, int ratio_w, int ratio_h, int ww, int hh, int chs, int width) {
+struct {
+  int out_w, out_h;
+  int ratio_h, ratio_w;
+  int w, h, chs;
+} glob;
+
+char sample_value(unsigned char *img, int ww, int hh) {
   int avg = 0;
 
-  for(int i=0;i < ratio_h;i++) {
-    for(int j=0;j < ratio_w;j++) {
-      int curr_w = ww * ratio_w + j;
-      int curr_h = hh * ratio_h + i;
+  for(int i=0;i < glob.ratio_h;i++) {
+    for(int j=0;j < glob.ratio_w;j++) {
+      int curr_w = ww * glob.ratio_w + j;
+      int curr_h = hh * glob.ratio_h + i;
 
-      unsigned char *curr_pixel = img + curr_h*width*chs + curr_w*chs;
+      unsigned char *curr_pixel = img + curr_h*glob.w*glob.chs + curr_w*glob.chs;
       int curr = 0;
-      for(int chan=0;chan < chs;chan++) curr += curr_pixel[chan];
-      curr /= chs;
+      for(int chan=0;chan < glob.chs;chan++) curr += curr_pixel[chan];
+      curr /= glob.chs;
 
       avg += curr;
     }
   }
-  avg /= ratio_w * ratio_h;
+  avg /= glob.ratio_w * glob.ratio_h;
 
   float darkness = (float) avg / 255.0f;
   int index = floor(darkness * sizeof(map));
@@ -53,45 +62,59 @@ char sample_value(unsigned char *img, int ratio_w, int ratio_h, int ww, int hh, 
   return map[index];
 }
 
+void convert_frame(unsigned char *frame, char out[glob.out_h][glob.out_w+1]) {
+  memset(out, '\0', glob.out_h * (glob.out_w+1) * sizeof(char));
+  for(int hh=0;hh < glob.out_h;hh++) {
+    for(int ww=0;ww < glob.out_w;ww++) {
+      out[hh][ww] = sample_value(frame, ww, hh);
+    }
+  }
+}
+
+void display(char out[glob.out_h][glob.out_w+1]) {
+  for(int hh=0;hh < glob.out_h;hh++) puts(out[hh]);
+}
+
 int main(int argc, char **argv) {
   if(argc != 4 && argc != 3) FAIL
 
-  int out_h, out_w;
   if (argc == 4) {
-    out_h = atoi(argv[2]);
-    out_w = atoi(argv[3]);
-    if(out_h == 0 || out_w == 0) FAIL
+    glob.out_h = atoi(argv[2]);
+    glob.out_w = atoi(argv[3]);
+    if(glob.out_h == 0 || glob.out_w == 0) FAIL
   }
   else {
-    out_w = atoi(argv[2]);
-    out_h = -1;
+    glob.out_w = atoi(argv[2]);
+    glob.out_h = -1;
 
-    if(out_w == 0) FAIL
+    if(glob.out_w == 0) FAIL
   }
 
   // open image
-  int w, h, chs;
-  unsigned char *img = stbi_load(argv[1], &w, &h, &chs, 0);
+  unsigned char *img = stbi_load(argv[1], &glob.w, &glob.h, &glob.chs, 0);
   if(img == NULL) FAIL
-  LOG("Opened image: w=%d, h=%d, chs=%d", w, h, chs);
+  LOG("Opened image: w=%d, h=%d, chs=%d", glob.w, glob.h, glob.chs);
 
-  if(out_h == -1) {
-    out_h = floorf(((float) h / w) * out_w * HEIGHT_RATIO);
+  if(glob.out_h == -1) {
+    glob.out_h = floorf(((float) glob.h / glob.w) * glob.out_w * HEIGHT_RATIO);
+  }
+  glob.ratio_w = glob.w / glob.out_w;
+  glob.ratio_h = glob.h / glob.out_h;
+
+  if(strstr(argv[1], ".gif")) {
+    LOG("THIS IS A GIF");
+    int frames;
+    stbi_xload(argv[1], &glob.w, &glob.h, &frames);
+    LOG("Frames: %d", frames);
+  }
+  else {
+    // convert frame
+    char out[glob.out_h][glob.out_w+1];
+    convert_frame(img, out);
+    // output result
+    display(out);
   }
 
-  // convert image
-  int ratio_w = w / out_w;
-  int ratio_h = h / out_h;
-  char out[out_h][out_w+1];
-  memset(out, '\0', sizeof(out));
-  for(int hh=0;hh < out_h;hh++) {
-    for(int ww=0;ww < out_w;ww++) {
-      out[hh][ww] = sample_value(img, ratio_w, ratio_h, ww, hh, chs, w);
-    }
-  }
-
-  // output result
-  for(int hh=0;hh < out_h;hh++) puts(out[hh]);
   stbi_image_free(img);
   return 0;
 }

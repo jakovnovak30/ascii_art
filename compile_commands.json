@@ -1,0 +1,20 @@
+[
+  {
+    "arguments": [
+      "/sbin/gcc",
+      "-c",
+      "-g",
+      "-std=c11",
+      "-Wall",
+      "-pedantic",
+      "-DDEBUG",
+      "-Iinclude",
+      "-o",
+      "bin/ascii_converter",
+      "src/main.c"
+    ],
+    "directory": "/home/jakov/Documents/ascii_art",
+    "file": "/home/jakov/Documents/ascii_art/src/main.c",
+    "output": "/home/jakov/Documents/ascii_art/bin/ascii_converter"
+  }
+]

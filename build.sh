@@ -7,5 +7,6 @@ CFLAGS="-g -std=c11 -Wall -pedantic -lm -DDEBUG"
 OUTPUT="bin/ascii_converter"
 
 SRCS="src/main.c"
+IDIR="include"
 
-$CC $CFLAGS $SRCS -o $OUTPUT
+$CC $CFLAGS -I$IDIR $SRCS -o $OUTPUT
