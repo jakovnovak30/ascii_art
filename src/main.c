@@ -11,6 +11,7 @@
 #define FAIL \
     {\
     perror("Usage: ascii_converter <image_path> <output_height> <output_width>");\
+    perror("Usage: ascii_converter <image_path> <output_width>");\
     exit(1);\
     }
 
@@ -19,6 +20,8 @@
 #else
 #define LOG(...)
 #endif
+
+#define HEIGHT_RATIO 0.5f
 
 #if 0
 static char map[] = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
@@ -51,26 +54,34 @@ char sample_value(unsigned char *img, int ratio_w, int ratio_h, int ww, int hh, 
 }
 
 int main(int argc, char **argv) {
-  if(argc != 4) {
-    FAIL
+  if(argc != 4 && argc != 3) FAIL
+
+  int out_h, out_w;
+  if (argc == 4) {
+    out_h = atoi(argv[2]);
+    out_w = atoi(argv[3]);
+    if(out_h == 0 || out_w == 0) FAIL
+  }
+  else {
+    out_w = atoi(argv[2]);
+    out_h = -1;
+
+    if(out_w == 0) FAIL
   }
 
-  int out_h = atoi(argv[2]);
-  int out_w = atoi(argv[3]);
-  if(out_h == 0 || out_w == 0) {
-    FAIL
-  }
-
+  // open image
   int w, h, chs;
   unsigned char *img = stbi_load(argv[1], &w, &h, &chs, 0);
-  if(img == NULL) {
-    FAIL
-  }
+  if(img == NULL) FAIL
   LOG("Opened image: w=%d, h=%d, chs=%d", w, h, chs);
 
+  if(out_h == -1) {
+    out_h = floorf(((float) h / w) * out_w * HEIGHT_RATIO);
+  }
+
+  // convert image
   int ratio_w = w / out_w;
   int ratio_h = h / out_h;
-
   char out[out_h][out_w+1];
   memset(out, '\0', sizeof(out));
   for(int hh=0;hh < out_h;hh++) {
@@ -79,9 +90,8 @@ int main(int argc, char **argv) {
     }
   }
 
-  for(int hh=0;hh < out_h;hh++)
-    puts(out[hh]);
-
+  // output result
+  for(int hh=0;hh < out_h;hh++) puts(out[hh]);
   stbi_image_free(img);
   return 0;
 }
