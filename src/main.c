@@ -24,6 +24,7 @@
 
 #define HEIGHT_RATIO 0.5f
 
+// source: https://paulbourke.net/dataformats/asciiart/
 #if 0
 static char map[] = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
 #else
