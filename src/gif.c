@@ -32,7 +32,8 @@ void gif_play(gif_t gif, bool loop) {
     GIF_Load(gif.buff, gif.size, gif_callback, NULL, fr_data, 0);
   } while(loop);
 
-  //free(fr_data);
+  free((*(unsigned char **) fr_data));
+  free(fr_data);
 }
 
 void gif_callback(void *prev, struct GIF_WHDR *frame) {
