@@ -7,13 +7,50 @@
       "-std=c23",
       "-Wall",
       "-DDEBUG",
-      "-Iinclude/gif_load",
+      "-DGIF_LOOP",
+      "-Iinclude",
       "-o",
       "bin/ascii_converter",
       "src/main.c"
     ],
     "directory": "/home/jakov/Documents/ascii_art",
     "file": "/home/jakov/Documents/ascii_art/src/main.c",
+    "output": "/home/jakov/Documents/ascii_art/bin/ascii_converter"
+  },
+  {
+    "arguments": [
+      "/sbin/gcc",
+      "-c",
+      "-g",
+      "-std=c23",
+      "-Wall",
+      "-DDEBUG",
+      "-DGIF_LOOP",
+      "-Iinclude",
+      "-o",
+      "bin/ascii_converter",
+      "src/common.c"
+    ],
+    "directory": "/home/jakov/Documents/ascii_art",
+    "file": "/home/jakov/Documents/ascii_art/src/common.c",
+    "output": "/home/jakov/Documents/ascii_art/bin/ascii_converter"
+  },
+  {
+    "arguments": [
+      "/sbin/gcc",
+      "-c",
+      "-g",
+      "-std=c23",
+      "-Wall",
+      "-DDEBUG",
+      "-DGIF_LOOP",
+      "-Iinclude",
+      "-o",
+      "bin/ascii_converter",
+      "src/gif.c"
+    ],
+    "directory": "/home/jakov/Documents/ascii_art",
+    "file": "/home/jakov/Documents/ascii_art/src/gif.c",
     "output": "/home/jakov/Documents/ascii_art/bin/ascii_converter"
   }
 ]
