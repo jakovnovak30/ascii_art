@@ -73,7 +73,11 @@ or:
                 ........::::::::::::::::
 ```
 
+### Requirements:
+- gcc
+- [stb_image](https://github.com/nothings/stb)
+
 ### TODO:
-1. adding color mode
-2. handling alpha channels on pngs
-3. future gif support (ANSI escape codes and animation in terminal)?
+1. handling alpha channels on pngs
+2. future gif support (ANSI escape codes and animation in terminal)?
+3. future video support (with audio maybe?)
