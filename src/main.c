@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <threads.h>
-#include <unistd.h>
+#include <time.h>
 
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
@@ -47,6 +47,7 @@ struct {
   int out_w, out_h;
   int ratio_h, ratio_w;
   int w, h, chs;
+  _Bool gif_done;
 } glob;
 
 char sample_value(unsigned char *img, int ww, int hh) {
@@ -115,7 +116,8 @@ void gif_callback(void *, struct GIF_WHDR *frame) {
   free(out);
   free(fr_data);
 
-  sleep(1);
+  // gif time units (1 unit = 10 msec)
+  thrd_sleep(&(struct timespec){ .tv_nsec = frame->time * 1e7 }, NULL);
 }
 
 int main(int argc, char **argv) {
@@ -148,6 +150,11 @@ int main(int argc, char **argv) {
 
     // handle actual rendering in gif_callback
     GIF_Load(buff, size, gif_callback, NULL, NULL, 0);
+
+    #ifdef GIF_LOOP
+    while(true)
+      GIF_Load(buff, size, gif_callback, NULL, NULL, 0);
+    #endif
 
     free(buff);
   }

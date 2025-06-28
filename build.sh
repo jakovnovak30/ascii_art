@@ -3,7 +3,7 @@
 set -xe
 
 CC=gcc
-CFLAGS="-g -std=c23 -Wall -lm -DDEBUG"
+CFLAGS="-g -std=c23 -Wall -lm -DDEBUG -DGIF_LOOP"
 OUTPUT="bin/ascii_converter"
 
 SRCS="src/main.c"
