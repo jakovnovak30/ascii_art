@@ -79,5 +79,5 @@ or:
 
 ### TODO:
 1. handling alpha channels on pngs
-2. future gif support (ANSI escape codes and animation in terminal)?
+2. handling advanced gif features (interlacing, transparency, ...)
 3. future video support (with audio maybe?)

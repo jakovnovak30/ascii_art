@@ -136,8 +136,6 @@ int main(int argc, char **argv) {
   }
 
   if(strstr(argv[1], ".gif")) { // handle gifs
-    LOG("THIS IS A GIF");
-
     FILE *gif_f = fopen(argv[1], "rb");
     if(gif_f == NULL) FAIL
     fseek(gif_f, 0, SEEK_END); // find end
