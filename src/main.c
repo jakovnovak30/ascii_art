@@ -56,16 +56,16 @@ char sample_value(unsigned char *img, int ww, int hh) {
   avg /= glob.ratio_w * glob.ratio_h;
 
   float darkness = (float) avg / 255.0f;
-  int index = floor(darkness * sizeof(map));
+  int index = floor(darkness * (sizeof(map) - 1));
 
   return map[index];
 }
 
-void convert_frame(unsigned char *frame, char out[glob.out_h][glob.out_w+1]) {
+void convert_frame(unsigned char *frame, char *out) {
   memset(out, '\0', glob.out_h * (glob.out_w+1) * sizeof(char));
   for(int hh=0;hh < glob.out_h;hh++) {
     for(int ww=0;ww < glob.out_w;ww++) {
-      out[hh][ww] = sample_value(frame, ww, hh);
+      out[hh*(glob.out_w+1) + ww] = sample_value(frame, ww, hh);
     }
   }
 }
@@ -75,8 +75,8 @@ void clear_screen(void) {
   printf("\x1b[%dD", glob.out_w);
 }
 
-void display(char out[glob.out_h][glob.out_w+1]) {
-  for(int hh=0;hh < glob.out_h;hh++) puts(out[hh]);
+void display(char *out) {
+  for(int hh=0;hh < glob.out_h;hh++) puts(&out[hh*(glob.out_w+1)]);
 }
 
 int main(int argc, char **argv) {
@@ -124,10 +124,11 @@ int main(int argc, char **argv) {
   }
   else {
     // convert frame
-    char out[glob.out_h][glob.out_w+1];
+    char *out = malloc(glob.out_h * (glob.out_w + 1));
     convert_frame(img, out);
     // output result
     display(out);
+    free(out);
   }
 
   stbi_image_free(img);
