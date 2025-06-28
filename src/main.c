@@ -27,6 +27,14 @@
 #endif
 
 #define HEIGHT_RATIO 0.5f
+#define CALCULATE_GLOB \
+    {\
+    if(glob.out_h == -1) {\
+      glob.out_h = floorf(((float) glob.h / glob.w) * glob.out_w * HEIGHT_RATIO);\
+    }\
+    glob.ratio_w = glob.w / glob.out_w;\
+    glob.ratio_h = glob.h / glob.out_h;\
+    }
 
 // source: https://paulbourke.net/dataformats/asciiart/
 #if 0
@@ -84,8 +92,28 @@ void display(char *out) {
 }
 
 void gif_callback(void *, struct GIF_WHDR *frame) {
-  static int ctr = 0;
-  LOG("Test ctr = %d", ctr++);
+  glob.w = frame->xdim;
+  glob.h = frame->ydim;
+  CALCULATE_GLOB
+  glob.chs = 3;
+
+  char *out = malloc((glob.out_w+1)*glob.out_h*sizeof(char));
+  unsigned char *fr_data = malloc(glob.w * glob.h * glob.chs);
+  for(int hh=0;hh < glob.h;hh++) {
+    for(int ww=0;ww < glob.w;ww++) {
+      int index = hh * glob.w * glob.chs + ww * glob.chs;
+
+      fr_data[index + 0] = frame->cpal[frame->bptr[hh*glob.w+ww]].R;
+      fr_data[index + 1] = frame->cpal[frame->bptr[hh*glob.w+ww]].G;
+      fr_data[index + 2] = frame->cpal[frame->bptr[hh*glob.w+ww]].B;
+    }
+  }
+
+  convert_frame(fr_data, out);
+  display(out);
+  clear_screen();
+  free(out);
+  free(fr_data);
 
   sleep(1);
 }
@@ -129,11 +157,7 @@ int main(int argc, char **argv) {
     if(img == NULL) FAIL
     LOG("Opened image: w=%d, h=%d, chs=%d", glob.w, glob.h, glob.chs);
 
-    if(glob.out_h == -1) {
-      glob.out_h = floorf(((float) glob.h / glob.w) * glob.out_w * HEIGHT_RATIO);
-    }
-    glob.ratio_w = glob.w / glob.out_w;
-    glob.ratio_h = glob.h / glob.out_h;
+    CALCULATE_GLOB
     // convert frame
     char *out = malloc(glob.out_h * (glob.out_w + 1));
     convert_frame(img, out);
