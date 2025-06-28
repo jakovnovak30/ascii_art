@@ -1,6 +1,7 @@
 #include "gif.h"
 #include "common.h"
 
+#include <string.h>
 #include <time.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -25,26 +26,47 @@ void gif_free(gif_t load_ret) {
 }
 
 void gif_play(gif_t gif, bool loop) {
+  unsigned char **fr_data = malloc(sizeof(unsigned char *));
+
   do {
-    GIF_Load(gif.buff, gif.size, gif_callback, NULL, NULL, 0);
+    GIF_Load(gif.buff, gif.size, gif_callback, NULL, fr_data, 0);
   } while(loop);
+
+  //free(fr_data);
 }
 
-void gif_callback(void *, struct GIF_WHDR *frame) {
-  glob.w = frame->xdim;
-  glob.h = frame->ydim;
-  CALCULATE_GLOB
-  glob.chs = 3;
+void gif_callback(void *prev, struct GIF_WHDR *frame) {
+  /*
+  LOG("frxd=%ld, fryd=%ld, frxo=%ld, fryo=%ld",
+      frame->frxd, frame->fryd, frame->frxo, frame->fryo);
+  LOG("intr=%ld", frame->intr);
+  */
+
+  if(frame->ifrm == 0) {
+    glob.w = frame->xdim;
+    glob.h = frame->ydim;
+    CALCULATE_GLOB
+    glob.chs = 3;
+
+    *((unsigned char **)prev) = malloc(glob.w * glob.h * glob.chs);
+  }
+  unsigned char *fr_data = *((unsigned char **)prev);
 
   char *out = malloc((glob.out_w+1)*glob.out_h*sizeof(char));
-  unsigned char *fr_data = malloc(glob.w * glob.h * glob.chs);
-  for(int hh=0;hh < glob.h;hh++) {
-    for(int ww=0;ww < glob.w;ww++) {
-      int index = hh * glob.w * glob.chs + ww * glob.chs;
+  for(int hh=0;hh < glob.h && hh < frame->fryd;hh++) {
+    for(int ww=0;ww < glob.w && ww < frame->frxd;ww++) {
+      int index = (hh + frame->fryo) * glob.w * glob.chs + (ww + frame->frxo) * glob.chs;
 
-      fr_data[index + 0] = frame->cpal[frame->bptr[hh*glob.w+ww]].R;
-      fr_data[index + 1] = frame->cpal[frame->bptr[hh*glob.w+ww]].G;
-      fr_data[index + 2] = frame->cpal[frame->bptr[hh*glob.w+ww]].B;
+      if(frame->tran != frame->bptr[hh*frame->frxd+ww]) {
+        fr_data[index + 0] = frame->cpal[frame->bptr[hh*frame->frxd+ww]].R;
+        fr_data[index + 1] = frame->cpal[frame->bptr[hh*frame->frxd+ww]].G;
+        fr_data[index + 2] = frame->cpal[frame->bptr[hh*frame->frxd+ww]].B;
+      }
+      else {
+        fr_data[index + 0] = '\0';
+        fr_data[index + 1] = '\0';
+        fr_data[index + 2] = '\0';
+      }
     }
   }
 
@@ -52,7 +74,6 @@ void gif_callback(void *, struct GIF_WHDR *frame) {
   display(out);
   clear_screen();
   free(out);
-  free(fr_data);
 
   // gif time units (1 unit = 10 msec)
   thrd_sleep(&(struct timespec){ .tv_nsec = frame->time * 1e7 }, NULL);

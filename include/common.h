@@ -6,7 +6,6 @@ struct GLOB {
   int out_w, out_h;
   int ratio_h, ratio_w;
   int w, h, chs;
-  _Bool gif_done;
 };
 
 extern struct GLOB glob;
