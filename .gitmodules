@@ -1,0 +1,3 @@
+[submodule "include/gif_load"]
+	path = include/gif_load
+	url = https://github.com/hidefromkgb/gif_load

@@ -4,11 +4,10 @@
       "/sbin/gcc",
       "-c",
       "-g",
-      "-std=c11",
+      "-std=c23",
       "-Wall",
-      "-pedantic",
       "-DDEBUG",
-      "-Iinclude",
+      "-Iinclude/gif_load",
       "-o",
       "bin/ascii_converter",
       "src/main.c"

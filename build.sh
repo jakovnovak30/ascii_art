@@ -3,10 +3,10 @@
 set -xe
 
 CC=gcc
-CFLAGS="-g -std=c11 -Wall -pedantic -lm -DDEBUG"
+CFLAGS="-g -std=c23 -Wall -lm -DDEBUG"
 OUTPUT="bin/ascii_converter"
 
 SRCS="src/main.c"
-IDIR="include"
+IDIR="include/gif_load"
 
 $CC $CFLAGS -I$IDIR $SRCS -o $OUTPUT

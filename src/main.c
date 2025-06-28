@@ -3,16 +3,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include <threads.h>
+#include <unistd.h>
 
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
 #endif
 
+#include "gif_load.h"
+
 #define FAIL \
     {\
     perror("Usage: ascii_converter <image_path> <output_height> <output_width>");\
     perror("Usage: ascii_converter <image_path> <output_width>");\
+    LOG("Failed in function %s", __FUNCTION__);\
     exit(1);\
     }
 
@@ -26,7 +30,7 @@
 
 // source: https://paulbourke.net/dataformats/asciiart/
 #if 0
-static char map[] = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. ";
+static char map[] = " .\'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
 #else
 static char map[] = " .:-=+*#%@";
 #endif
@@ -79,6 +83,13 @@ void display(char *out) {
   for(int hh=0;hh < glob.out_h;hh++) puts(&out[hh*(glob.out_w+1)]);
 }
 
+void gif_callback(void *, struct GIF_WHDR *frame) {
+  static int ctr = 0;
+  LOG("Test ctr = %d", ctr++);
+
+  sleep(1);
+}
+
 int main(int argc, char **argv) {
   if(argc != 4 && argc != 3) FAIL
 
@@ -94,43 +105,43 @@ int main(int argc, char **argv) {
     if(glob.out_w == 0) FAIL
   }
 
-  // open image
-  unsigned char *img = stbi_load(argv[1], &glob.w, &glob.h, &glob.chs, 0);
-  if(img == NULL) FAIL
-  LOG("Opened image: w=%d, h=%d, chs=%d", glob.w, glob.h, glob.chs);
-
-  if(glob.out_h == -1) {
-    glob.out_h = floorf(((float) glob.h / glob.w) * glob.out_w * HEIGHT_RATIO);
-  }
-  glob.ratio_w = glob.w / glob.out_w;
-  glob.ratio_h = glob.h / glob.out_h;
-
-  if(strstr(argv[1], ".gif") && 0) {
+  if(strstr(argv[1], ".gif")) { // handle gifs
     LOG("THIS IS A GIF");
-    stbi_info(argv[1], &glob.w, &glob.h, &glob.chs);
 
-    //TODO: load gif frames and delays
+    FILE *gif_f = fopen(argv[1], "rb");
+    if(gif_f == NULL) FAIL
+    fseek(gif_f, 0, SEEK_END); // find end
+    size_t size = ftell(gif_f); // get offset from start (file size)
+    fseek(gif_f, 0, SEEK_SET); // return to start
+    
+    void *buff = malloc(size * sizeof(char));
+    if(fread(buff, sizeof(char), size, gif_f) == 0) FAIL
+    fclose(gif_f);
 
-    /*
-    char out[glob.out_h][glob.out_w+1];
-    for(int i=0;i < 10;i++) {
-      clear_screen();
-      convert_frame(img + glob.w*glob.h*glob.chs*i, out);
-      // output result
-      display(out);
-      thrd_sleep(&(struct timespec){.tv_sec=1}, NULL); // sleep 1 sec
-    }
-    */
+    // handle actual rendering in gif_callback
+    GIF_Load(buff, size, gif_callback, NULL, NULL, 0);
+
+    free(buff);
   }
-  else {
+  else { // handle normal images
+    // open image
+    unsigned char *img = stbi_load(argv[1], &glob.w, &glob.h, &glob.chs, 0);
+    if(img == NULL) FAIL
+    LOG("Opened image: w=%d, h=%d, chs=%d", glob.w, glob.h, glob.chs);
+
+    if(glob.out_h == -1) {
+      glob.out_h = floorf(((float) glob.h / glob.w) * glob.out_w * HEIGHT_RATIO);
+    }
+    glob.ratio_w = glob.w / glob.out_w;
+    glob.ratio_h = glob.h / glob.out_h;
     // convert frame
     char *out = malloc(glob.out_h * (glob.out_w + 1));
     convert_frame(img, out);
     // output result
     display(out);
     free(out);
+    stbi_image_free(img);
   }
 
-  stbi_image_free(img);
   return 0;
 }
