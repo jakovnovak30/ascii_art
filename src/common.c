@@ -37,6 +37,7 @@ void convert_frame(unsigned char *frame, char *out) {
 }
 
 void clear_screen(void) {
+  // ANSI escape codes: https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
   printf("\x1b[%dA", glob.out_h);
   printf("\x1b[%dD", glob.out_w);
 }
