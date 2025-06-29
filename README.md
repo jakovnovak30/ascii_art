@@ -3,7 +3,7 @@ Simple program that generates ascii art from input file.
 
 Example usage:
 ```
-> bin/ascii_converter res/mona.jpg 40
+> bin/ascii_converter -f res/mona.jpg -w 40
 
 =====-===----=-========-------------=-=-
 ========================================
@@ -39,7 +39,7 @@ Example usage:
 or:
 
 ```
-> bin/ascii_converter res/deathstar.jpg 60
+> bin/ascii_converter -f res/deathstar.jpg -w 60
 
                           .:------::.
                    .:=+*####%%###*+*+-=-..
@@ -72,6 +72,9 @@ or:
             ....:::.::::::::::::::.::.:::...
                 ........::::::::::::::::
 ```
+
+To print all options there is the command:
+``ascii_converter --help`` or ``ascii_converter -H``
 
 ### Requirements:
 - gcc

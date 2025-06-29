@@ -6,14 +6,17 @@ struct GLOB {
   int out_w, out_h;
   int ratio_h, ratio_w;
   int w, h, chs;
+  enum {
+    NOT_SET, LOOP, NOT_LOOP
+  } loop_arg;
+  char *filename;
 };
 
 extern struct GLOB glob;
 
 #define FAIL \
     {\
-    perror("Usage: ascii_converter <image_path> <output_height> <output_width>");\
-    perror("Usage: ascii_converter <image_path> <output_width>");\
+    fprintf(stderr, "Incorrect usage! Try running: ascii_converter --help\n");\
     LOG("Failed in function %s", __FUNCTION__);\
     exit(1);\
     }

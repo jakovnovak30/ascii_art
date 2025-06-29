@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <threads.h>
@@ -12,39 +13,97 @@
 
 struct GLOB glob;
 
-void parse_args(int argc, char **argv) {
-  if(argc != 4 && argc != 3) FAIL
+#define STR_CMP(_str, _name, _alt, _code) \
+    if(!strcmp(_str, _name) || !strcmp(_str, _alt)) {_code continue;}
 
-  if (argc == 4) {
-    glob.out_h = atoi(argv[2]);
-    glob.out_w = atoi(argv[3]);
-    if(glob.out_h == 0 || glob.out_w == 0) FAIL
-  }
-  else {
-    glob.out_w = atoi(argv[2]);
-    glob.out_h = -1;
+typedef enum {
+  INVALID,
+  VALID,
+  HELP
+} parse_result_t;
 
-    if(glob.out_w == 0) FAIL
+void shift_args(int *argc, char ***argv) {
+  *argc = *argc-2;
+  *argv = *argv+2;
+}
+
+parse_result_t parse_args(int argc, char **argv) {
+  // ignore program name
+  argc--; argv++;
+
+  // default vals
+  glob.filename = NULL;
+  glob.out_w = -1; glob.out_h = -1;
+
+  while(argc > 0) {
+    char *field = argv[0];
+    char *val   = argv[1];
+    shift_args(&argc, &argv);
+
+    STR_CMP(field, "-f", "--file", {
+      glob.filename = val;
+    })
+    STR_CMP(field, "-w", "--width", {
+      int width = atoi(val);
+      if(width == 0) return INVALID;
+      glob.out_w = width;
+    })
+    STR_CMP(field, "-h", "--height", {
+      int height = atoi(val);
+      if(height == 0) return INVALID; 
+      glob.out_h = height;
+    })
+
+    STR_CMP(field, "--help", "-H", {
+      return HELP;
+    })
+
+    // if we're still here, the user supplied a weird argument
+    return INVALID;
   }
+
+  if(glob.out_w == -1 || glob.filename == NULL)
+    return INVALID;
+
+  return VALID;
+}
+
+void help_output() {
+  puts("Usage: ascii_converter [option] [value]");
+  puts("Options:");
+  puts("-f or --file   : the input file path");
+  puts("-w or --width  : the output width");
+  puts("-h or --height : the output height (optional)");
+  puts("-H or --help   : displays this message (optional)");
 }
 
 int main(int argc, char **argv) {
-  parse_args(argc, argv);
+  switch(parse_args(argc, argv)) {
+    case INVALID:
+      FAIL
+    case HELP:
+      help_output();
+      exit(0);
+    case VALID:
+      break;
+  }
 
-  if(strstr(argv[1], ".gif")) { // handle gifs
-    gif_t gif = gif_load_file(argv[1]);
+  if(strstr(glob.filename, ".gif")) { // handle gifs
+    gif_t gif = gif_load_file(glob.filename);
 
-    #ifdef GIF_LOOP
-    gif_play(gif, true);
-    #else
-    gif_play(gif, false);
-    #endif
+    gif_play(gif,
+          #ifdef GIF_LOOP
+            true
+          #else
+            false
+          #endif
+             );
 
     gif_free(gif);
   }
   else { // handle normal images
     // open image
-    unsigned char *img = stbi_load(argv[1], &glob.w, &glob.h, &glob.chs, 0);
+    unsigned char *img = stbi_load(glob.filename, &glob.w, &glob.h, &glob.chs, 0);
     if(img == NULL) FAIL
     LOG("Opened image: w=%d, h=%d, chs=%d", glob.w, glob.h, glob.chs);
 
