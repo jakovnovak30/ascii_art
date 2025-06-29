@@ -22,7 +22,7 @@ char sample_value(unsigned char *img, int ww, int hh) {
   avg /= glob.ratio_w * glob.ratio_h;
 
   float darkness = (float) avg / 255.0f;
-  int index = floor(darkness * (sizeof(map) - 1));
+  int index = floor(darkness * (sizeof(map) - 2));
 
   return map[index];
 }
