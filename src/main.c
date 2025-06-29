@@ -34,6 +34,7 @@ parse_result_t parse_args(int argc, char **argv) {
   // default vals
   glob.filename = NULL;
   glob.out_w = -1; glob.out_h = -1;
+  glob.loop_arg = NOT_SET;
 
   while(argc > 0) {
     char *field = argv[0];
@@ -54,6 +55,17 @@ parse_result_t parse_args(int argc, char **argv) {
       glob.out_h = height;
     })
 
+    STR_CMP(field, "--loop", "-l", {
+      glob.loop_arg = LOOP;
+      argc++;
+      argv--;
+    })
+    STR_CMP(field, "--no-loop", "-nl", {
+      glob.loop_arg = NOT_LOOP;
+      argc++;
+      argv--;
+    })
+
     STR_CMP(field, "--help", "-H", {
       return HELP;
     })
@@ -71,10 +83,12 @@ parse_result_t parse_args(int argc, char **argv) {
 void help_output() {
   puts("Usage: ascii_converter [option] [value]");
   puts("Options:");
-  puts("-f or --file   : the input file path");
-  puts("-w or --width  : the output width");
-  puts("-h or --height : the output height (optional)");
-  puts("-H or --help   : displays this message (optional)");
+  puts("-f  or --file       : the input file path");
+  puts("-w  or --width      : the output width");
+  puts("-h  or --height     : the output height (optional)");
+  puts("-l  or --loop       : set loop behaviour for gifs (optional)");
+  puts("-nl or --no-loop    : do not set loop behaviour for gifs (optional)");
+  puts("-H  or --help       : displays this message (optional)");
 }
 
 int main(int argc, char **argv) {
@@ -91,13 +105,18 @@ int main(int argc, char **argv) {
   if(strstr(glob.filename, ".gif")) { // handle gifs
     gif_t gif = gif_load_file(glob.filename);
 
-    gif_play(gif,
-          #ifdef GIF_LOOP
-            true
-          #else
-            false
-          #endif
-             );
+    if(glob.loop_arg == NOT_SET) {
+      gif_play(gif,
+            #ifdef GIF_LOOP
+              true
+            #else
+              false
+            #endif
+               );
+    }
+    else {
+      gif_play(gif, glob.loop_arg == LOOP);
+    }
 
     gif_free(gif);
   }
