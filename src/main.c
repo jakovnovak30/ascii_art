@@ -9,7 +9,11 @@
 #endif
 
 #include "common.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 #include "gif.h"
+#pragma GCC diagnostic pop
 
 struct GLOB glob;
 
